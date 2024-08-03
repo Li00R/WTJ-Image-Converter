@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WTJ</title>
+    <style>
+        body {
+            color: rgb(200, 200, 200);
+            background-color: rgb(30, 30, 30);
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #output {
+            display: flex;
+            justify-content: space-around;
+        }
+        .srcButton {
+            color: rgb(210, 210, 210);
+            background-color: rgba(200, 10, 100, 0.9);
+            padding: 10px;
+            display: flex;
+            font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        }
+        .srcButton:hover {
+            background-color: rgba(200, 10, 100, 0.6);
+        }
+        #output img {
+            max-width: 45vw;
+            max-height: 64vh;
+            /* max-height: 73vh; */
+        }
+        #urlInput {
+            display: none;
+            width: 300px;
+            height: 30px;
+        }
+        #urlInput.show {
+            display: inline;
+        }
+        .srcType {
+            position: absolute;
+            left: 0px;
+            color: rgb(210, 210, 210);
+            background-color: rgba(130, 1, 250, 0.9);
+            padding: 10px;
+            font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+            font-size: 25px;
+            border-color: rgba(250, 105, 105, 0.9);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .srcType:hover {
+            background-color: rgba(130, 1, 250, 0.3);
+            scale: 96%;
+        }
+        .srcType.active {
+            background-color: rgba(130, 1, 250, 0.6);
+            scale: 96%;
+        }
+        .fileTypeBtn {
+            margin-left: 10px;
+        }
+        .urlTypeBtn {
+            margin-left: 100px;
+        }
+        #fileInput {
+            display: none;
+        }
+        #fileInputLabel {
+            display: none;
+        }
+        #fileInputLabel.show {
+            display: inline;
+            /* display: flex; */
+            border: 3px solid rgba(100, 100, 100, 0.8);
+            cursor: pointer;
+        }
+        #convert {
+            position: relative;
+            left: 0px;
+            color: rgb(210, 210, 210);
+            background-color: rgba(0, 197, 43, 0.9);
+            padding: 5px;
+            font-family:monospace;
+            font-size: 22px;
+            cursor: pointer;
+        }
+        #convert:hover {
+            background-color: rgba(3, 102, 25, 0.6);
+            scale: 99%;
+        }
+        #fileLink {
+            display: none;
+            color: #000;
+            width: 300px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            background-color: rgba(162, 207, 192, 0.8);
+            overflow: hidden;
+        }
+        #fileLink.show {
+            display: inline-block;
+        }
+        #typeOut {
+            font-size: 25px;
+        }
+        .loading.show {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: auto auto;
+            margin-top: 50px;
+            border: 5px solid transparent;
+            border-top-color: rgba(218, 32, 218, 0.8);
+            animation: rotate 2s linear infinite; 
+        }
+        #quality_option {
+            display: none;
+        }
+        #quality_option.show {
+            display: inline;
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg) scale(1); 
+            }
+            100% {
+                transform: rotate(360deg) scale(1); 
+            }
+        }
+    </style>
+</head>
+<body>
+    <span> 
+        <button id="btnFILE" class="fileTypeBtn srcType">FILE</button>
+        <button id="btnURL" class="urlTypeBtn srcType active">URL</button>
+        <h1>Convert an image to other format</h1> 
+    </span>
+    <div id="data_panel" style="padding-bottom: 5px;">
+        <label for="fileInput" class="srcButton" id="fileInputLabel">Choose file</label> <span id="fileLink">...</span>
+        <input type="file" id="fileInput" accept="image">
+        <input type="text" id="urlInput" class="show" placeholder="Insert Image URL">
+        <button id="convert">Convert</button>
+        <select name="selectTypeOut" id="typeOut">
+            <option value="jpeg">jpeg</option>
+            <option value="png">png</option>
+            <option value="webp">webp</option>
+            <!-- <option value="bmp">bmp</option> -->
+        </select>
+    </div>
+    <div>
+        <span id="quality_option" class="show"><input type="range" min="1" max="100" value="100" id="quality">Quality: <span id="qualityPercent">100</span>%</span>
+    <!-- <button id="convert" onclick="convertir()">Convertir a JPEG</button> -->
+    </div>
+
+    <div id="output">
+        <div class="imageBox">
+            <h2>Original:</h2>
+            <img id="originalImg" src="" alt="Image original"><div class="loading"></div>
+        </div>
+        <div class="imageBox">
+            <h2>Converted: <span> <a id="downloadConverted" href="#" download="converted.jpeg">download</a> </span></h2>
+            <img id="convertedImg" src="" alt="Image converted"><div class="loading"></div>
+            <!-- <a id="convertedLink" href=""><img id="convertedImg" src="" alt="Image converted"></a> -->
+        </div>
+    </div>
+
+</body>
+
+<script>
+let srcType= "url";
+let loading=document.querySelectorAll(".loading");
+let urlInput= document.querySelector("#urlInput");
+let btnFileInput= document.querySelector("#fileInputLabel");
+let quality= document.querySelector("#quality");
+let btnURL= document.querySelector("#btnURL");
+let btnFILE= document.querySelector("#btnFILE");
+let fileLink= document.querySelector("#fileLink");
+let quality_option= document.querySelector("#quality_option");
+let typeOut= document.querySelector("#typeOut");
+
+quality.addEventListener("input", function() {document.querySelector("#qualityPercent").innerHTML = this.value;});
+btnURL.addEventListener("click", function() {urlInput.classList.add("show"); btnFileInput.classList.remove("show");btnFILE.classList.remove("active");btnURL.classList.add("active"); fileLink.classList.remove("show"); srcType="url"});
+btnFILE.addEventListener("click", function() {urlInput.classList.remove("show"); btnFileInput.classList.add("show"); btnFILE.classList.add("active");btnURL.classList.remove("active"); fileLink.classList.add("show"); srcType="file"});
+
+document.querySelector("#fileInput").addEventListener("click", function() {let file = fileInput.files[0]; fileLink.innerHTML="..."});
+document.querySelector("#fileInput").addEventListener("change", function() {let file = fileInput.files[0]; fileLink.innerHTML=file.name});
+document.querySelector("#convert").addEventListener("click", function() {if (srcType=="url") {convertURL()} if (srcType=="file") {convertFile()};});
+typeOut.addEventListener("change", function() {if (typeOut.value == "jpeg") {quality_option.classList.add("show")} else {quality_option.classList.remove("show")}});
+
+function convert(imgURL, quality, imgType, callback) {
+    let img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = function() {
+        let canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        let ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(function(blob) {
+            let reader = new FileReader();
+            reader.onloadend = function() {
+                callback(reader.result);
+            }
+            reader.readAsDataURL(blob);
+        }, 'image/'+imgType, quality); // jpeg, png, webp
+    }
+    img.src = imgURL;
+}
+
+
+function convertFile() {
+    let fileInput = document.getElementById('fileInput');
+    let originalImg = document.querySelector("#originalImg");
+    let convertedImg = document.querySelector("#convertedImg");
+    let outputDiv = document.querySelector("#output");
+    let downloadLink = document.querySelector("#downloadConverted");
+    let imgType= typeOut.value
+    originalImg.src="";
+    convertedImg.src="";
+    if (fileInput.files.length === 0) {
+        alert('Select an image');
+        return;
+    }
+    loading.forEach(element => element.classList.add("show"));
+    let file = fileInput.files[0];
+    let reader = new FileReader();
+    nombreArchivo = file.name;
+    reader.onload = function(event) {
+        loading[0].classList.remove("show");
+        let imgURL = event.target.result;
+        originalImg.src = imgURL;
+
+        let qualityJPEG = quality.value/100; // % quality
+        convert(imgURL, qualityJPEG, imgType, function(base64Img) {
+            loading[1].classList.remove("show");
+            convertedImg.src = base64Img;
+            downloadLink.href= base64Img;
+            downloadLink.download="converted."+imgType;
+            outputDiv.style.display = 'flex';
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+function convertURL() {
+    let imgURL = document.querySelector("#urlInput").value.trim();
+    let originalImg = document.querySelector("#originalImg");
+    let convertedImg = document.querySelector("#convertedImg");
+    let outputDiv = document.querySelector("#output");
+    let downloadLink = document.querySelector("#downloadConverted");
+    let imgType= typeOut.value;
+    originalImg.src="";
+    convertedImg.src="";
+    if (!imgURL) {
+        alert('Por favor ingresa la URL de una imagen WebP.');
+        return;
+    }
+    loading.forEach(element => element.classList.add("show"));
+    originalImg.onload = function() { 
+        loading[0].classList.remove("show");
+    }
+    originalImg.src = imgURL;
+
+    let qualityIMG = quality.value/100;
+    /* originalImg.onload = function() { 
+        loading[0].classList.remove("show");
+    } */
+    convert(imgURL, qualityIMG, imgType, function(base64Img) {
+        loading[1].classList.remove("show");
+        convertedImg.src = base64Img;
+        downloadLink.href= base64Img;
+        downloadLink.download="converted."+imgType;
+        outputDiv.style.display = 'flex';
+    });
+}
+</script>
+
+</html>
